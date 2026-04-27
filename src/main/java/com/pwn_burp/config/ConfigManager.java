@@ -2,6 +2,7 @@ package com.pwn_burp.config;
 
 import burp.api.montoya.logging.Logging;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
 public class ConfigManager {
@@ -18,12 +19,16 @@ public class ConfigManager {
 
     public void loadConfig() {
         Properties props = new Properties();
-        try {
-            props.load(ConfigManager.class.getResourceAsStream("/config.properties"));
-            serverAddress = props.getProperty("server.address", serverAddress);
-            serverPort = Integer.parseInt(props.getProperty("server.port", String.valueOf(serverPort)));
-            proxyAddress = props.getProperty("proxy.address", proxyAddress);
-            proxyPort = Integer.parseInt(props.getProperty("proxy.port", String.valueOf(proxyPort)));
+        try (InputStream stream = ConfigManager.class.getResourceAsStream("/config.properties")) {
+            if (stream != null) {
+                props.load(stream);
+                serverAddress = props.getProperty("server.address", serverAddress);
+                serverPort = Integer.parseInt(props.getProperty("server.port", String.valueOf(serverPort)));
+                proxyAddress = props.getProperty("proxy.address", proxyAddress);
+                proxyPort = Integer.parseInt(props.getProperty("proxy.port", String.valueOf(proxyPort)));
+            } else {
+                logging.logToError("config.properties not found on classpath; using defaults");
+            }
         } catch (IOException | NumberFormatException e) {
             logging.logToError("Failed to load config: " + e.getMessage());
         }
@@ -55,7 +60,7 @@ public class ConfigManager {
     }
 
     public String getProxyAddress() {
-        return serverAddress;
+        return proxyAddress;
     }
 
     public int getProxyPort() {

@@ -83,7 +83,7 @@ public class SiteMapHandler {
         String highlight = ctx.queryParamAsClass("highlight", String.class).getOrDefault("NONE");
 
         ctx.status(200);
-        ctx.json(pwnService.getSiteMap(urlPrefix, limit, offset, highlight));
+        respondWithJsonString(ctx, pwnService.getSiteMap(urlPrefix, limit, offset, highlight));
     }
 
     @OpenApi(
@@ -140,13 +140,22 @@ public class SiteMapHandler {
         }
     )
     private void getSiteMapByUrl(Context ctx) {
-        String urlPrefix = new String(Base64.getDecoder().decode(ctx.pathParam("url") != null ? ctx.pathParam("url") : ""));
+        String encodedUrl = ctx.pathParam("url") != null ? ctx.pathParam("url") : "";
+        String urlPrefix;
+        try {
+            urlPrefix = new String(Base64.getDecoder().decode(encodedUrl));
+        } catch (IllegalArgumentException e) {
+            ctx.status(400);
+            ctx.json(pwnService.apiError("url", "Invalid Base64-encoded URL prefix"));
+            return;
+        }
+
         int limit  = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(200);
         int offset = ctx.queryParamAsClass("offset", Integer.class).getOrDefault(0);
         String highlight = ctx.queryParamAsClass("highlight", String.class).getOrDefault("NONE");
 
         ctx.status(200);
-        ctx.json(pwnService.getSiteMap(urlPrefix, limit, offset, highlight));
+        respondWithJsonString(ctx, pwnService.getSiteMap(urlPrefix, limit, offset, highlight));
     }
 
     @OpenApi(
@@ -231,5 +240,10 @@ public class SiteMapHandler {
         } catch (Exception e) {
             ctx.status(400).json(pwnService.apiError("error", e.getMessage()));
         }
+    }
+
+    private void respondWithJsonString(Context ctx, String json) {
+        ctx.contentType("application/json");
+        ctx.result(json == null ? "{}" : json);
     }
 }

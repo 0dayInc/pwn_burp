@@ -36,7 +36,15 @@ public class ScopeHandler {
     )
     private void getScope(Context ctx) {
         String urlParam = ctx.pathParam("url") != null ? ctx.pathParam("url") : "";
-        String plainURL = new String(Base64.getDecoder().decode(urlParam));
+        String plainURL;
+        try {
+            plainURL = new String(Base64.getDecoder().decode(urlParam));
+        } catch (IllegalArgumentException e) {
+            ctx.status(400);
+            ctx.json(pwnService.apiError("url", "Invalid Base64-encoded URL"));
+            return;
+        }
+
         try {
             URL url = URI.create(plainURL).toURL();
             ctx.status(200);
@@ -84,7 +92,15 @@ public class ScopeHandler {
     )
     private void deleteScope(Context ctx) {
         String urlParam = ctx.pathParam("url") != null ? ctx.pathParam("url") : "";
-        String plainURL = new String(Base64.getDecoder().decode(urlParam));
+        String plainURL;
+        try {
+            plainURL = new String(Base64.getDecoder().decode(urlParam));
+        } catch (IllegalArgumentException e) {
+            ctx.status(400);
+            ctx.json(pwnService.apiError("url", "Invalid Base64-encoded URL"));
+            return;
+        }
+
         try {
             URL url = URI.create(plainURL).toURL(); // Fix deprecated URL constructor (line 93)
             pwnService.excludeFromScope(url);

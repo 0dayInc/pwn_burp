@@ -105,9 +105,9 @@ public class ProxyService {
                     obj.addProperty("response", responseBase64);
 
                     // Annotations
-                    highlight = (item.annotations() != null && item.annotations().highlightColor() != null)
+                    String itemHighlight = (item.annotations() != null && item.annotations().highlightColor() != null)
                             ? item.annotations().highlightColor().toString() : "";
-                    obj.addProperty("highlight", highlight);
+                    obj.addProperty("highlight", itemHighlight);
 
                     String comment = (item.annotations() != null && item.annotations().notes() != null)
                             ? item.annotations().notes() : "";
@@ -206,9 +206,9 @@ public class ProxyService {
                     int webSocketId = item.webSocketId();
                     obj.addProperty("web_socket_id", webSocketId >= 0 ? webSocketId : -1);
 
-                    highlight = (item.annotations() != null && item.annotations().highlightColor() != null)
+                    String itemHighlight = (item.annotations() != null && item.annotations().highlightColor() != null)
                             ? item.annotations().highlightColor().toString() : "";
-                    obj.addProperty("highlight", highlight);
+                    obj.addProperty("highlight", itemHighlight);
 
                     String comment = (item.annotations() != null && item.annotations().notes() != null)
                             ? item.annotations().notes() : "";

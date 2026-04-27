@@ -91,7 +91,7 @@ public class ProxyHandler {
         String highlight = ctx.queryParamAsClass("highlight", String.class).getOrDefault("NONE");
 
         ctx.status(200);
-        ctx.json(pwnService.getProxyHistory(urlPrefix, limit, offset, highlight));
+        respondWithJsonString(ctx, pwnService.getProxyHistory(urlPrefix, limit, offset, highlight));
     }
 
     @OpenApi(
@@ -149,13 +149,22 @@ public class ProxyHandler {
         }
     )
     private void getProxyHistoryByUrl(Context ctx) {
-        String urlPrefix = new String(Base64.getDecoder().decode(ctx.pathParam("url") != null ? ctx.pathParam("url") : ""));
+        String encodedUrl = ctx.pathParam("url") != null ? ctx.pathParam("url") : "";
+        String urlPrefix;
+        try {
+            urlPrefix = new String(Base64.getDecoder().decode(encodedUrl));
+        } catch (IllegalArgumentException e) {
+            ctx.status(400);
+            ctx.json(pwnService.apiError("url", "Invalid Base64-encoded URL prefix"));
+            return;
+        }
+
         int limit  = ctx.queryParamAsClass("limit", Integer.class).getOrDefault(200);
         int offset = ctx.queryParamAsClass("offset", Integer.class).getOrDefault(0);
         String highlight = ctx.queryParamAsClass("highlight", String.class).getOrDefault("NONE");
 
         ctx.status(200);
-        ctx.json(pwnService.getProxyHistory(urlPrefix, limit, offset, highlight));
+        respondWithJsonString(ctx, pwnService.getProxyHistory(urlPrefix, limit, offset, highlight));
     }
 
     @OpenApi(
@@ -215,7 +224,7 @@ public class ProxyHandler {
         String highlight = ctx.queryParamAsClass("highlight", String.class).getOrDefault("NONE");
 
         ctx.status(200);
-        ctx.json(pwnService.getWebSocketHistory(urlPrefix, limit, offset, highlight));
+        respondWithJsonString(ctx, pwnService.getWebSocketHistory(urlPrefix, limit, offset, highlight));
     }
 
     @OpenApi(
@@ -395,5 +404,10 @@ public class ProxyHandler {
           ctx.status(404);
           ctx.json(pwnService.apiError("listener", "Proxy listener not found or deletion unsupported in Montoya API"));
       }
+    }
+
+    private void respondWithJsonString(Context ctx, String json) {
+        ctx.contentType("application/json");
+        ctx.result(json == null ? "{}" : json);
     }
 }
