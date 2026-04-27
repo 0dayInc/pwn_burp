@@ -58,7 +58,16 @@ public class ScanHandler {
         }
     )
     private void getScanIssuesByUrl(Context ctx) {
-        String url = new String(Base64.getDecoder().decode(ctx.pathParam("url") != null ? ctx.pathParam("url") : ""));
+        String encodedUrl = ctx.pathParam("url") != null ? ctx.pathParam("url") : "";
+        String url;
+        try {
+            url = new String(Base64.getDecoder().decode(encodedUrl));
+        } catch (IllegalArgumentException e) {
+            ctx.status(400);
+            ctx.json(pwnService.apiError("url", "Invalid Base64-encoded URL"));
+            return;
+        }
+
         ctx.status(200);
         ctx.json(pwnService.scanIssuesToJsonArray(pwnService.getScanIssues(url)));
     }
@@ -125,7 +134,7 @@ public class ScanHandler {
     )
     private void getActiveScanStatus(Context ctx) {
         ctx.status(200);
-        ctx.json(pwnService.getActiveScanStatus());
+        respondWithJsonString(ctx, pwnService.getActiveScanStatus());
     }
 
     @OpenApi(
@@ -148,7 +157,7 @@ public class ScanHandler {
                 ctx.json(pwnService.apiError("id", "scan item not found"));
             } else {
                 ctx.status(200);
-                ctx.json(result);
+                respondWithJsonString(ctx, result);
             }
         } catch (NumberFormatException e) {
             ctx.status(400);
@@ -342,7 +351,7 @@ public class ScanHandler {
     )
     private void getSpiderStatus(Context ctx) {
         ctx.status(200);
-        ctx.json(pwnService.getCrawlStatus());
+        respondWithJsonString(ctx, pwnService.getCrawlStatus());
     }
 
     @OpenApi(
@@ -365,7 +374,7 @@ public class ScanHandler {
                 ctx.json(pwnService.apiError("id", "spider item not found"));
             } else {
                 ctx.status(200);
-                ctx.json(result);
+                respondWithJsonString(ctx, result);
             }
         } catch (NumberFormatException e) {
             ctx.status(400);
@@ -403,5 +412,10 @@ public class ScanHandler {
             ctx.status(400);
             ctx.json(pwnService.apiError("id", "Invalid spider ID format"));
         }
+    }
+
+    private void respondWithJsonString(Context ctx, String json) {
+        ctx.contentType("application/json");
+        ctx.result(json == null ? "{}" : json);
     }
 }
